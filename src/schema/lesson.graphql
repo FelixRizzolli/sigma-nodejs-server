@@ -1,0 +1,8 @@
+type Query {
+    getLessonCollections: [LessonCollection]
+}
+
+type LessonCollection {
+    name: String!
+    frequency: String
+}
