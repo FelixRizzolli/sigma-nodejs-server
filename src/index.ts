@@ -1,21 +1,24 @@
 import dotenv from 'dotenv';
+import http from 'http';
+import express, { json } from 'express';
+import cors from 'cors';
 import { ApolloServer } from '@apollo/server';
-import { startStandaloneServer } from '@apollo/server/standalone';
+import { expressMiddleware } from '@apollo/server/express4';
+import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { GraphQLSchema } from 'graphql/type/schema';
 import mongoose, { Mongoose } from 'mongoose';
+
 import { LessonCollectionModel } from './models/Lessons/LessonCollection.js';
 
 dotenv.config();
-console.log(process.env.MONGODB_URI);
+const db: Mongoose = await mongoose.connect(process.env.MONGODB_URI);
 
 const typeDefs: GraphQLSchema = loadSchemaSync('./**/*.graphql', {
   loaders: [new GraphQLFileLoader()]
 });
 
-// Resolvers define the technique for fetching the types defined in the
-// schema. This resolver retrieves books from the "books" array above.
 const resolvers = {
   Query: {
     getLessonCollections: async () => {
@@ -29,13 +32,26 @@ const resolvers = {
   }
 };
 
-const db: Mongoose = await mongoose.connect(process.env.MONGODB_URI);
-console.info(db);
+interface MyContext {
+  token?: String;
+}
 
-const server: ApolloServer = new ApolloServer({
+const app = express();
+const httpServer = http.createServer(app);
+const server = new ApolloServer<MyContext>({
   typeDefs,
-  resolvers
+  resolvers,
+  plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
 });
+await server.start();
+app.use(
+  '/graphql',
+  cors<cors.CorsRequest>(),
+  json(),
+  expressMiddleware(server, {
+    context: async ({ req }) => ({ token: req.headers.token }),
+  }),
+);
 
-const { url } = await startStandaloneServer(server, { listen: { port: 4000 } });
-console.log(`🚀 Server listening at: ${url}`);
+await new Promise<void>((resolve) => httpServer.listen({ port: 4000 }, resolve));
+console.log(`🚀 Server ready at http://localhost:4000/graphql`);
