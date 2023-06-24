@@ -14,6 +14,7 @@ import { LessonCollectionModel } from './models/Lessons/LessonCollection.js';
 
 dotenv.config();
 const db: Mongoose = await mongoose.connect(process.env.MONGODB_URI);
+const port = process.env.PORT || 3000;
 
 const typeDefs: GraphQLSchema = loadSchemaSync('./**/*.graphql', {
   loaders: [new GraphQLFileLoader()]
@@ -53,5 +54,5 @@ app.use(
   }),
 );
 
-await new Promise<void>((resolve) => httpServer.listen({ port: 4000 }, resolve));
-console.log(`🚀 Server ready at http://localhost:4000/graphql`);
+await new Promise<void>((resolve) => httpServer.listen({ port: port }, resolve));
+console.log(`🚀 Server ready at http://localhost:${port}/graphql`);
