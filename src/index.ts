@@ -11,6 +11,7 @@ import { GraphQLSchema } from 'graphql/type/schema';
 import mongoose, { Mongoose } from 'mongoose';
 
 import { LessonCollectionModel } from './models/Lessons/LessonCollection.js';
+import { LessonModel } from './models/Lessons/Lesson.js';
 
 dotenv.config();
 const db: Mongoose = await mongoose.connect(process.env.MONGODB_URI);
@@ -22,7 +23,7 @@ const typeDefs: GraphQLSchema = loadSchemaSync('./**/*.graphql', {
 
 const resolvers = {
   Query: {
-    getLessonCollections: async () => {
+    getLessonCollections: async (parent, args, context, info) => {
       try {
         return LessonCollectionModel.find();
       } catch (error) {
@@ -30,6 +31,15 @@ const resolvers = {
         throw new Error('Failed to fetch LessonCollections');
       }
     },
+    getLessons: async (parent, args, context, info) => {
+      try {
+        const lessonCollectionId = new mongoose.Types.ObjectId(args.lessonCollectionId);
+        return LessonModel.find({ 'lessonCollection.id': lessonCollectionId });
+      } catch (error) {
+        console.log(error);
+        throw new Error('Failed to fetch LessonCollections');
+      }
+    }
   }
 };
 
