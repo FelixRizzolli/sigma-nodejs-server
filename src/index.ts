@@ -56,7 +56,7 @@ const server = new ApolloServer<MyContext>({
 });
 await server.start();
 app.use(
-  '/graphql',
+  '/',
   cors<cors.CorsRequest>(),
   json(),
   expressMiddleware(server, {
@@ -65,4 +65,4 @@ app.use(
 );
 
 await new Promise<void>((resolve) => httpServer.listen({ port: port }, resolve));
-console.log(`🚀 Server ready at http://localhost:${port}/graphql`);
+console.log(`🚀 Server ready at http://localhost:${port}/`);
