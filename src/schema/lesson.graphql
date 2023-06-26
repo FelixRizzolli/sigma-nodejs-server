@@ -24,4 +24,8 @@ type LessonContent {
 
     #LessonParagraph
     paragraph: String
+
+    #LessonUnorderedList and LessonOrderedList
+    intro: String
+    list: [String]
 }
