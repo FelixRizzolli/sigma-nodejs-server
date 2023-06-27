@@ -23,6 +23,7 @@ const lessonContentSchema = new Schema({
 
 
 const lessonSchema = new Schema({
+    _id: { type: mongoose.Types.ObjectId, require: true },
     title: { type: String, required: true },
     number: { type: Number, required: true },
     content: { type: [lessonContentSchema], required: false},

@@ -39,6 +39,20 @@ const resolvers = {
         console.log(error);
         throw new Error('Failed to fetch LessonCollections');
       }
+    },
+    getLessonByNumber: async (parent, args, context, info) => {
+      console.log('requelst with args: ');
+      console.log(args);
+      try {
+        const query = { 
+          'lessonCollection.id': new mongoose.Types.ObjectId(args.lessonCollectionId), 
+          'number': args.number 
+        }
+        return LessonModel.findOne(query);
+      } catch (error) {
+        console.log(error);
+        throw new Error('Failed to fetch LessonCollections');
+      }
     }
   }
 };

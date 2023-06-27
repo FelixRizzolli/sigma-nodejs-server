@@ -1,14 +1,17 @@
 type Query {
     getLessonCollections: [LessonCollection]
     getLessons(lessonCollectionId: ID!): [Lesson]
+    getLessonByNumber(lessonCollectionId: ID!, number: Int): Lesson
 }
 
 type LessonCollection {
+    _id: ID!
     name: String!
     frequency: String
 }
 
 type Lesson {
+    _id: ID!
     title: String!
     content: [LessonContent]
     number: Int
