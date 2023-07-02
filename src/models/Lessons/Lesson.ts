@@ -5,12 +5,12 @@ export class Lesson{
         public id: string,
         public title: string,
         public lessonNumber: number,
-        public content: []
+        public content: (LessonParagraph | LessonQuote | LessonList)[] = [],
     ) {};
 
     public static getLesson = async (lessonCollectionId: string, number: number): Promise<Lesson> => {
         const db: Db = getDatabase();
-        const lessonCollections: Collection = db.collection('lessons');
+        const lessons: Collection = db.collection('lessons');
 
         const query: Filter<Document> = { 
             'lessonCollection.id': new ObjectId(lessonCollectionId),
@@ -24,18 +24,50 @@ export class Lesson{
             }
         };
 
-        const document = await lessonCollections.findOne(query, options);
-        
-        return new Lesson(
+        const document = await lessons.findOne(query, options);
+        const lessonObject = new Lesson(
             document['_id'].toString(),
             document['title'],
             document['number'],
-            document['content'],
         );
+        document['content'].map((contentObject) => {
+            switch (contentObject._type) {
+                case LessonContentTypes.PARAGRAPH:
+                    lessonObject.content.push(
+                        new LessonParagraph(
+                            contentObject._type,
+                            contentObject.paragraph
+                        )
+                    );
+                    break;
+                case LessonContentTypes.QUOTE:
+                    lessonObject.content.push(
+                        new LessonQuote(
+                            contentObject._type,
+                            contentObject.quote,
+                            contentObject.author,
+                            contentObject.source,
+                        )
+                    );
+                    break;
+                case LessonContentTypes.ORDEREDLIST:
+                case LessonContentTypes.UNORDEREDLIST:
+                    lessonObject.content.push(
+                        new LessonList(
+                            contentObject._type,
+                            contentObject.intro,
+                            contentObject.list
+                        )
+                    );
+                    break;
+            }
+        });
+
+        return lessonObject;
     }
     public static getLessons = async (lessonCollectionId: string): Promise<Lesson[]> => {
         const db: Db = getDatabase();
-        const lessonCollections: Collection = db.collection('lessons');
+        const lessons: Collection = db.collection('lessons');
         const result: Lesson[] = [];
 
         const query: Filter<Document> = {
@@ -52,7 +84,7 @@ export class Lesson{
             'number': 1,
         };
 
-        const cursor = await lessonCollections.find(query, options).sort(sort);
+        const cursor = await lessons.find(query, options).sort(sort);
         for await (const document of cursor) {
             result.push(new Lesson(
                 document['_id'].toString(),
@@ -65,4 +97,33 @@ export class Lesson{
         return result;
     }
 
+}
+
+export enum LessonContentTypes {
+    QUOTE = 'QUOTE',
+    PARAGRAPH = 'PARAGRAPH',
+    ORDEREDLIST = 'ORDEREDLIST',
+    UNORDEREDLIST = 'UNORDEREDLIST',
+}
+
+export class LessonQuote {
+    constructor(
+        public type: string,
+        public quote: string,
+        public author: string,
+        public source: string,
+    ) {};
+}
+export class LessonParagraph {
+    constructor(
+        public type: string,
+        public paragraph: string,
+    ) {};
+}
+export class LessonList {
+    constructor(
+        public type: string,
+        public intro: string,
+        public list: string[],
+    ) {};
 }

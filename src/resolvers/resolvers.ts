@@ -1,5 +1,5 @@
 import { LessonCollection } from "../models/Lessons/LessonCollection.js";
-import { Lesson } from "../models/Lessons/Lesson.js";
+import { Lesson, LessonContentTypes } from "../models/Lessons/Lesson.js";
 
 const resolvers = {
   Query: {
@@ -15,7 +15,21 @@ const resolvers = {
     getLessonByNumber: async (_, args) => {
       return Lesson.getLesson(args['lessonCollectionId'], args['lessonNumber']);
     }
-  }
+  },
+  LessonContent: {
+    __resolveType(obj){
+      switch (obj.type) {
+        case LessonContentTypes.PARAGRAPH:
+          return 'LessonParagraph';
+        case LessonContentTypes.QUOTE:
+          return 'LessonQuote';
+        case LessonContentTypes.ORDEREDLIST:
+        case LessonContentTypes.UNORDEREDLIST:
+          return 'LessonList';
+      }
+      return null; // GraphQLError is thrown
+    },
+  },
 };
 
 export default resolvers;

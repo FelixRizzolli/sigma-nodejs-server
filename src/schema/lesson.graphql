@@ -15,4 +15,25 @@ type Lesson {
     id: ID!
     title: String!
     lessonNumber: Int
+    content: [LessonContent]
+}
+
+union LessonContent = LessonParagraph | LessonQuote | LessonList
+
+type LessonParagraph {
+    type: String!
+    paragraph: String
+}
+
+type LessonQuote {
+    type: String!
+    quote: String
+    author: String
+    source: String
+}
+
+type LessonList {
+    type: String!
+    intro: String
+    list: [String]
 }
