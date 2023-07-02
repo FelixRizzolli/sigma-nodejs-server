@@ -1,34 +1,18 @@
 type Query {
+    getLessonCollection(lessonCollectionId: ID!): LessonCollection
     getLessonCollections: [LessonCollection]
     getLessons(lessonCollectionId: ID!): [Lesson]
-    getLessonByNumber(lessonCollectionId: ID!, number: Int): Lesson
+    getLessonByNumber(lessonCollectionId: ID!, lessonNumber: Int): Lesson
 }
 
 type LessonCollection {
-    _id: ID!
+    id: ID!
     name: String!
     frequency: String
 }
 
 type Lesson {
-    _id: ID!
+    id: ID!
     title: String!
-    content: [LessonContent]
-    number: Int
-}
-
-type LessonContent {
-    _type: String!
-    
-    #LessonQuote
-    quote: String
-    source: String
-    author: String
-
-    #LessonParagraph
-    paragraph: String
-
-    #LessonUnorderedList and LessonOrderedList
-    intro: String
-    list: [String]
+    lessonNumber: Int
 }

@@ -8,54 +8,16 @@ import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHt
 import { GraphQLFileLoader } from '@graphql-tools/graphql-file-loader';
 import { loadSchemaSync } from '@graphql-tools/load';
 import { GraphQLSchema } from 'graphql/type/schema';
-import mongoose, { Mongoose } from 'mongoose';
-
-import { LessonCollectionModel } from './models/Lessons/LessonCollection.js';
-import { LessonModel } from './models/Lessons/Lesson.js';
+import resolvers from './resolvers/resolvers.js';
+import { connectToDatabase } from './datasources/mongodb.js';
+import { error } from 'console';
 
 dotenv.config();
-const db: Mongoose = await mongoose.connect(process.env.MONGODB_URI);
 const port = process.env.PORT || 3000;
 
 const typeDefs: GraphQLSchema = loadSchemaSync('./**/*.graphql', {
   loaders: [new GraphQLFileLoader()]
 });
-
-const resolvers = {
-  Query: {
-    getLessonCollections: async (parent, args, context, info) => {
-      try {
-        return LessonCollectionModel.find();
-      } catch (error) {
-        console.log(error);
-        throw new Error('Failed to fetch LessonCollections');
-      }
-    },
-    getLessons: async (parent, args, context, info) => {
-      try {
-        const lessonCollectionId = new mongoose.Types.ObjectId(args.lessonCollectionId);
-        return LessonModel.find({ 'lessonCollection.id': lessonCollectionId });
-      } catch (error) {
-        console.log(error);
-        throw new Error('Failed to fetch LessonCollections');
-      }
-    },
-    getLessonByNumber: async (parent, args, context, info) => {
-      console.log('requelst with args: ');
-      console.log(args);
-      try {
-        const query = { 
-          'lessonCollection.id': new mongoose.Types.ObjectId(args.lessonCollectionId), 
-          'number': args.number 
-        }
-        return LessonModel.findOne(query);
-      } catch (error) {
-        console.log(error);
-        throw new Error('Failed to fetch LessonCollections');
-      }
-    }
-  }
-};
 
 interface MyContext {
   token?: String;
@@ -78,5 +40,9 @@ app.use(
   }),
 );
 
-await new Promise<void>((resolve) => httpServer.listen({ port: port }, resolve));
-console.log(`🚀 Server ready at http://localhost:${port}/`);
+connectToDatabase(async (error) => {
+  if (!error) {
+    await new Promise<void>((resolve) => httpServer.listen({ port: port }, resolve));
+    console.log(`🚀 Server ready at http://localhost:${port}/`);
+  }
+});
